@@ -1,0 +1,4 @@
+# admin_handler.py - Define admin commands here
+
+def register_admin_handler(app):
+    pass  # You’ll add mute, ban, user stats, etc.
