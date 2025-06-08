@@ -1,6 +1,5 @@
 from telegram.ext import ApplicationBuilder
 from config import BOT_TOKEN
-from database.db import init_db
 from handlers.profile_handler import register_profile_handler
 from handlers.find_handler import register_find_handlers
 from handlers.chat_handler import register_chat_handler
