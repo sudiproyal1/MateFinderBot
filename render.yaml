@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: matefinder-bot
+    runtime: python
+    buildCommand: ""
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 7620053279:AAGETQR-9A_KUhAcldUqz41EckEvBRfgpSE
+      - key: MONGO_URL
+        value: mongodb+srv://royalstag1321:8bKKKWWOd4bNgS3N@matefinderbot.gnu1ds9.mongodb.net/?retryWrites=true&w=majority&appName=MateFinderBot
