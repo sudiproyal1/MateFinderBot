@@ -84,6 +84,19 @@ async def handle_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif data == "next":
         await show_next(user_id, context)
+        
+elif data.startswith("like_"):
+    target_id = int(data.split("_")[1])
+    add_to_list(user_id, "likes", target_id)
+    await query.edit_message_caption(caption="❤️ You liked this profile.")
+
+    # ✅ MATCH DETECTION
+    target_user = get_user(target_id)
+    if target_user and user_id in target_user.get("likes", []):
+        await context.bot.send_message(user_id, f"🎉 It's a Match! Start chatting with @{target_user['name']}!")
+        await context.bot.send_message(target_id, f"🎉 You matched with @{query.from_user.first_name}!")
+    
+    await show_next(user_id, context)
 
 async def show_next(user_id, context):
     session = user_sessions.get(user_id)
