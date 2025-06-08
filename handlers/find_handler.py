@@ -1,20 +1,20 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from database.db import get_all_users, get_user, add_to_list
 import random
+
+user_sessions = {}
 
 def register_find_handlers(app):
     app.add_handler(CommandHandler("find", start_finding))
     app.add_handler(CallbackQueryHandler(handle_action))
 
-user_sessions = {}
 
 async def start_finding(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     all_users = get_all_users()
     current_user = get_user(user_id)
 
-    # Filter profiles: not self, not skipped/liked, not banned
     potential = [
         u for u in all_users
         if u["id"] != user_id and
@@ -31,6 +31,7 @@ async def start_finding(update: Update, context: ContextTypes.DEFAULT_TYPE):
     random.shuffle(potential)
     user_sessions[user_id] = potential
     await show_profile(update, context, user_id)
+
 
 async def show_profile(update, context, user_id):
     session = user_sessions.get(user_id)
@@ -60,16 +61,24 @@ async def show_profile(update, context, user_id):
         parse_mode="Markdown"
     )
 
+
 async def handle_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-
     data = query.data
+
     if data.startswith("like_"):
         target_id = int(data.split("_")[1])
         add_to_list(user_id, "likes", target_id)
         await query.edit_message_caption(caption="❤️ You liked this profile.")
+
+        # ✅ Match check
+        target_user = get_user(target_id)
+        if target_user and user_id in target_user.get("likes", []):
+            await context.bot.send_message(user_id, f"🎉 It's a Match! Start chatting with @{target_user['name']}!")
+            await context.bot.send_message(target_id, f"🎉 You matched with @{query.from_user.first_name}!")
+
         await show_next(user_id, context)
 
     elif data.startswith("skip_"):
@@ -79,24 +88,11 @@ async def handle_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_next(user_id, context)
 
     elif data.startswith("comment_"):
-        target_id = int(data.split("_")[1])
-        await context.bot.send_message(chat_id=user_id, text="✍️ Feature coming soon: Comment System!")
-    
+        await context.bot.send_message(chat_id=user_id, text="✍️ Comment system coming soon!")
+
     elif data == "next":
         await show_next(user_id, context)
-        
-elif data.startswith("like_"):
-    target_id = int(data.split("_")[1])
-    add_to_list(user_id, "likes", target_id)
-    await query.edit_message_caption(caption="❤️ You liked this profile.")
 
-    # ✅ MATCH DETECTION
-    target_user = get_user(target_id)
-    if target_user and user_id in target_user.get("likes", []):
-        await context.bot.send_message(user_id, f"🎉 It's a Match! Start chatting with @{target_user['name']}!")
-        await context.bot.send_message(target_id, f"🎉 You matched with @{query.from_user.first_name}!")
-    
-    await show_next(user_id, context)
 
 async def show_next(user_id, context):
     session = user_sessions.get(user_id)
