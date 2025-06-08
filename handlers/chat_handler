@@ -1,0 +1,4 @@
+# chat_handler.py - Define match/random chat logic here
+
+def register_chat_handler(app):
+    pass  # You’ll add match chat and random chat here
